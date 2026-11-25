@@ -1,0 +1,242 @@
+{
+  "info": {
+    "_postman_id": "e2bdca52-cfc0-43c3-9127-e9ae722beee9",
+    "name": "Intelligence API - Support Incident Lab",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "60399969",
+    "_collection_link": "https://go.postman.co/collection/60399969-e2bdca52-cfc0-43c3-9127-e9ae722beee9?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "01 - Organization Search - Success",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Valid key returns 200\", function () {\n    pm.response.to.have.status(200);\n});\n\nconst body = pm.response.json();\n\npm.test(\"Organization count is correct\", function () {\n    pm.expect(body.count).to.eql(1);\n});\n\npm.test(\"Organization domain is correct\", function () {\n    pm.expect(body.results[0].domain).to.eql(\"caspian.example\")\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "demo-key-123"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/v1/organizations?domain=caspian.example",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "organizations"
+          ],
+          "query": [
+            {
+              "key": "domain",
+              "value": "caspian.example"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03 - INC-002 - Missing Organization Data",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Valid key returns 200\", function () {\n    pm.response.to.have.status(200);\n});\n\nconst body = pm.response.json();\n\npm.test(\"Search returns zero organizations\", function () {\n    pm.expect(body.count).to.eql(0);\n});\n\npm.test(\"Results array is empty\", function () {\n    pm.expect(body.results.length).to.eql(0);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "demo-key-123"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/v1/organizations?domain=missing.example",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "organizations"
+          ],
+          "query": [
+            {
+              "key": "domain",
+              "value": "missing.example"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "04 - INC-002 - Provider B Unavailable",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Unavailable provider returns HTTP 503\", function () {\n    pm.response.to.have.status(503);\n});\n\nconst body = pm.response.json();\n\npm.test(\"Response identifies unavailable provider\", function () {\n    pm.expect(body.detail).to.eql(\n        \"Data provider provider_b is temporarily unavailable\"\n    );\n});\n\npm.test(\"Response includes Request ID\", function () {\n    const requestId = pm.response.headers.get(\"X-Request-ID\");\n\n    pm.expect(requestId).to.be.a(\"string\").and.not.empty;\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "demo-key-123"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/v1/organizations?domain=vistula.example",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "organizations"
+          ],
+          "query": [
+            {
+              "key": "domain",
+              "value": "vistula.example"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "05 - INC-003 - Provider C Rate Limited",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Provider C returns HTTP 429\", function () {\n    pm.response.to.have.status(429);\n});\n\nconst body = pm.response.json();\n\npm.test(\"Rate limit error message is correct\", function () {\n    pm.expect(body.detail).to.eql(\n        \"Provider C rate limit exceeded\"\n    );\n});\n\npm.test(\"Retry-After header is 5 seconds\", function () {\n    const retryAfter = pm.response.headers.get(\"Retry-After\");\n    pm.expect(retryAfter).to.eql(\"5\");\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "demo-key-123"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/mock/providers/provider-c/search?domain=caspian.example",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "mock",
+            "providers",
+            "provider-c",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "domain",
+              "value": "caspian.example"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "02 - INC-001 - Invalid API Key",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Invalid key should return 401\", function () {\n    pm.response.to.have.status(401);\n});\n\npm.test(\"Response should explain authentication failure\", function () {\n    const body = pm.response.json();\n\n    pm.expect(body.detail).to.eql(\n        \"Invalid or missing API key\"\n    );\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "wrong-key-999"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/v1/organizations?domain=caspian.example",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "organizations"
+          ],
+          "query": [
+            {
+              "key": "domain",
+              "value": "caspian.example"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
